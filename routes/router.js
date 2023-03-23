@@ -3,8 +3,13 @@ const router = require('express').Router();
 //const dbModel = include('databaseAccessLayer');
 //const dbModel = include('staticData');
 
-const userModel = include('models/web_user');
-const petModel = include('models/pet');
+// const userModel = include('models/web_user');
+// const petModel = include('models/pet');
+const userCollection = database.db('lab_example').collection('users');
+const users = await userCollection.find().project({
+	first_name: 1, last_name: 1, email:
+		1, _id: 1
+}).toArray();
 
 const crypto = require('crypto');
 const {v4: uuid} = require('uuid');

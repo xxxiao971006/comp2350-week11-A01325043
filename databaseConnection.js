@@ -1,30 +1,14 @@
-const mysql = require('mysql2');
-
-const is_heroku = process.env.IS_HEROKU || false;
-
-const dbConfigHeroku = {
-	host: "us-cdbr-east-03.cleardb.com",
-	user: "b1ab7fb2ee03bc",
-	password: "2a484a2d",
-	database: "heroku_3d208ad4bd6f421",
-	multipleStatements: false,
-	namedPlaceholders: true
-};
-
-const dbConfigLocal = {
-	host: "localhost",
-	user: "root",
-	password: "Password",
-	database: "lab_example",
-	multipleStatements: false,
-	namedPlaceholders: true
-};
-
-if (is_heroku) {
-	var database = mysql.createPool(dbConfigHeroku);
+const MongoClient = require("mongodb").MongoClient;
+const is_qoddi = process.env.IS_QODDI || false;
+const qoddiURI ="mongodb+srv://xiao:Zxx53625140%40@cluster0.h5qplzn.mongodb.net/?retryWrites=true&w=majority"
+const localURI = "mongodb://localhost:27017/?retryWrites=true&serverSelectionTimeoutMS=5000&connectTimeoutMS=10000&3t.uriVersion=3&3t.connection.name=localhost&3t.alwaysShowAuthDB=true&3t.alwaysShowDBFromUserRole=true";
+if (is_qoddi) {
+	var database = new MongoClient(qoddiURI,
+		{ useNewUrlParser: true, useUnifiedTopology: true });
 }
 else {
-	var database = mysql.createPool(dbConfigLocal);
+	var database = new MongoClient(localURI,
+		{ useNewUrlParser: true, useUnifiedTopology: true });
 }
 
 module.exports = database;

@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
 
 		if (users === null) {
 			res.render('error', {message: 'Error connecting to MongoDB'});
-			console.log("Error connecting to userModel");
+			console.log("Error connecting to userCollection");
 		}
 		else {
 			console.log(users);
@@ -47,8 +47,8 @@ router.get('/pets', async (req, res) => {
 	try {
 		const pets = await petModel.findAll({attributes: ['name']}); //{where: {web_user_id: 1}}
 		if (pets === null) {
-			res.render('error', {message: 'Error connecting to MySQL'});
-			console.log("Error connecting to userModel");
+			res.render('error', { message: 'Error connecting to MongoDB'});
+			console.log("Error connecting to pets");
 		}
 		else {
 			console.log(pets);
@@ -56,8 +56,8 @@ router.get('/pets', async (req, res) => {
 		}
 	}
 	catch(ex) {
-		res.render('error', {message: 'Error connecting to MySQL'});
-		console.log("Error connecting to MySQL");
+		res.render('error', { message: 'Error connecting to MongoDB'});
+		console.log("Error connecting to MongoDB");
 		console.log(ex);
 	}
 });
@@ -89,8 +89,8 @@ router.get('/showPets', async (req, res) => {
 		}
 	}
 	catch(ex) {
-		res.render('error', {message: 'Error connecting to MySQL'});
-		console.log("Error connecting to MySQL");
+		res.render('error', {message: 'Error connecting to MongoDB'});
+		console.log("Error connecting to MongoDB");
 		console.log(ex);
 	}
 });

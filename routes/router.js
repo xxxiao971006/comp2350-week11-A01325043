@@ -1,27 +1,33 @@
 const router = require('express').Router();
-//const database = include('databaseConnection');
+const database = include('databaseConnection');
 //const dbModel = include('databaseAccessLayer');
 //const dbModel = include('staticData');
 
 // const userModel = include('models/web_user');
 // const petModel = include('models/pet');
-const userCollection = database.db('lab_example').collection('users');
-const users = await userCollection.find().project({
-	first_name: 1, last_name: 1, email:
-		1, _id: 1
-}).toArray();
+
 
 const crypto = require('crypto');
 const {v4: uuid} = require('uuid');
 
 const passwordPepper = "SeCretPeppa4MySal+";
 
+const Joi = require("joi");
+
+
 router.get('/', async (req, res) => {
 	console.log("page hit");
 	try {
-		const users = await userModel.findAll({attributes: ['web_user_id','first_name','last_name','email']}); //{where: {web_user_id: 1}}
+		const userCollection = database.db('lab_example').collection('users');
+		const users = await userCollection.find().project({
+			first_name: 1,
+			last_name: 1,
+			email: 1,
+			_id: 1
+		}).toArray();
+
 		if (users === null) {
-			res.render('error', {message: 'Error connecting to MySQL'});
+			res.render('error', {message: 'Error connecting to MongoDB'});
 			console.log("Error connecting to userModel");
 		}
 		else {
@@ -30,8 +36,8 @@ router.get('/', async (req, res) => {
 		}
 	}
 	catch(ex) {
-		res.render('error', {message: 'Error connecting to MySQL'});
-		console.log("Error connecting to MySQL");
+		res.render('error', { message: 'Error connecting to MongoDB'});
+		console.log("Error connecting to MongoDB");
 		console.log(ex);
 	}
 });
@@ -62,16 +68,22 @@ router.get('/showPets', async (req, res) => {
 	console.log("page hit");
 	try {
 		let userId = req.query.id;
-		const user = await userModel.findByPk(userId); 
-		if (user === null) {
-			res.render('error', {message: 'Error connecting to MySQL'});
-			console.log("Error connecting to userModel");
+		const ObjectId = require('mongodb').ObjectId;
+		const userCollection = database.db('lab_example').collection('users');
+		const allPets = await userCollection.find({ _id: new ObjectId(userId) }).project(
+			{pets: 1, _id: 0}
+		).toArray();
+		const pets = allPets[0].pets;
+		// const user = await userModel.findByPk(userId); 
+		if (pets === null) {
+			res.render('error', {message: 'Error connecting to MongoDB'});
+			console.log("Error connecting to pets");
 		}
 		else {
-			let pets = await user.getPets();
+			// let pets = await user.getPets();
 			console.log(pets);
-			let owner = await pets[0].getOwner();
-			console.log(owner);
+			// let owner = await pets[0].getOwner();
+			// console.log(owner);
 			
 			res.render('pets', {allPets: pets});
 		}
@@ -90,18 +102,20 @@ router.get('/deleteUser', async (req, res) => {
 		let userId = req.query.id;
 		if (userId) {
 			console.log("userId: "+userId);
-			let deleteUser = await userModel.findByPk(userId);
+			
+			const ObjectId = require('mongodb').ObjectId;
+
+			const userCollection = database.db('lab_example').collection('users');
+			let deleteUser = await userCollection.deleteOne({ "_id": new ObjectId(userId) });
 			console.log("deleteUser: ");
 			console.log(deleteUser);
-			if (deleteUser !== null) {
-				await deleteUser.destroy();
-			}
+			
 		}
 		res.redirect("/");
 	}
 	catch(ex) {
-		res.render('error', {message: 'Error connecting to MySQL'});
-		console.log("Error connecting to MySQL");
+		res.render('error', {message: 'Error connecting to MongoDB'});
+		console.log("Error connecting to MongoDB");
 		console.log(ex);	
 	}
 });
@@ -118,8 +132,17 @@ router.post('/addUser', async (req, res) => {
 
 		password_hash.update(req.body.password+passwordPepper+password_salt);
 
+		// const ObjectId = require('mongodb').ObjectId;
+		const userCollection = database.db('lab_example').collection('users');
 
-		let newUser = userModel.build(
+		const schema = Joi.string().max(10).required();
+		const validationResult = schema.validate(req.query.id);
+		if (validationResult.error != null) {
+			console.log(validationResult.error);
+			throw validationResult.error;
+		};
+
+		let newUser = await userCollection.insertOne(
 			{	
 				first_name: req.body.first_name,
 				last_name: req.body.last_name,
@@ -128,12 +151,11 @@ router.post('/addUser', async (req, res) => {
 				password_hash: password_hash.digest('hex')
 			}
 		);
-		await newUser.save();
 		res.redirect("/");
 	}
 	catch(ex) {
-		res.render('error', {message: 'Error connecting to MySQL'});
-		console.log("Error connecting to MySQL");
+		res.render('error', {message: 'Error connecting to MongoDB'});
+		console.log("Error connecting to MongoDB");
 		console.log(ex);	
 	}
 });
